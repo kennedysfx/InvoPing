@@ -1,7 +1,6 @@
 import { db } from "./index";
 import {
   users,
-  adminUsers,
   businesses,
   businessMembers,
   clients,
@@ -15,25 +14,11 @@ import {
   activityLogs,
   adminActivityLogs,
 } from "./schema";
-import bcrypt from "bcryptjs";
 
 export async function seedDatabase() {
   console.log("🌱 Starting InvoPing Database Seed...");
 
-  // 1. Create Initial Platform Super Admin
-  const adminPasswordHash = await bcrypt.hash("AdminPass123!", 10);
-  const [admin] = await db
-    .insert(adminUsers)
-    .values({
-      email: "admin@invoping.com",
-      passwordHash: adminPasswordHash,
-      role: "SUPER_ADMIN",
-      active: true,
-    })
-    .onConflictDoNothing()
-    .returning();
 
-  console.log(`✅ Admin User: admin@invoping.com (Password: AdminPass123!)`);
 
   // 2. Create Demo Customer & Business
   const [user] = await db

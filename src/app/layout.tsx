@@ -6,7 +6,7 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "InvoPing — Create invoices. Send on WhatsApp. Get paid.",
+  title: "InvoPing ",
   description: "The simplest invoicing and payment-tracking SaaS for freelancers, contractors, agencies, and small businesses that use WhatsApp.",
   keywords: ["invoicing", "whatsapp invoices", "freelancer billing", "payment tracking", "invoice PDF"],
 };
