@@ -616,6 +616,34 @@ useEffect(() => {
 
 function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
+  // Start at the top whenever the homepage loads.
+useEffect(() => {
+  const previousRestoration = window.history.scrollRestoration;
+  window.history.scrollRestoration = "manual";
+
+  const scrollToTop = () => {
+    const html = document.documentElement;
+    const previousBehavior = html.style.scrollBehavior;
+
+    html.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    html.style.scrollBehavior = previousBehavior;
+  };
+
+  scrollToTop();
+
+  // Also handle a page restored from the browser's back/forward cache.
+  const handlePageShow = (event: PageTransitionEvent) => {
+    if (event.persisted) scrollToTop();
+  };
+
+  window.addEventListener("pageshow", handlePageShow);
+
+  return () => {
+    window.history.scrollRestoration = previousRestoration;
+    window.removeEventListener("pageshow", handlePageShow);
+  };
+}, []);
 
   useEffect(() => {
     const section = sectionRef.current;
