@@ -510,7 +510,7 @@ useEffect(() => {
             aria-expanded={open}
             aria-controls="mobile-navigation"
             onClick={openMenu}
-            className="grid h-11 w-11 place-items-center rounded-xl border border-[#deeadf] bg-white text-[#064b32] min-[1200px]:hidden"
+            className="grid h-11 w-11 place-items-center rounded-xl border border-[#deeadf] bg-white text-[#064b32] outline-none ring-0 [-webkit-tap-highlight-color:transparent] focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[#079333] focus-visible:ring-offset-2 min-[1200px]:hidden"
           >
             <MobileMenuDots spinning={menuAnimating} />
           </button>
@@ -530,17 +530,17 @@ useEffect(() => {
       />
 
       {/* Right-side mobile navigation panel */}
-      <nav
-        id="mobile-navigation"
-        aria-label="Mobile navigation"
-        aria-hidden={!open}
-        inert={!open}
-        className={`fixed inset-y-0 right-0 z-[80] flex h-[100svh] w-[85vw] max-w-[380px] flex-col overflow-y-auto overscroll-contain rounded-l-[26px] bg-white text-[#103f2f] shadow-[-16px_0_50px_rgba(6,60,41,0.15)] transition-transform duration-500 ease-out motion-reduce:transition-none min-[1200px]:hidden ${
-          open
-            ? "translate-x-0"
-            : "pointer-events-none translate-x-full"
-        }`}
-      >
+<nav
+  id="mobile-navigation"
+  aria-label="Mobile navigation"
+  aria-hidden={!open}
+  inert={!open}
+  className={`fixed inset-y-0 right-0 z-[80] flex h-[100dvh] w-[85vw] max-w-[380px] flex-col overflow-y-auto overscroll-contain rounded-l-[26px] bg-white text-[#103f2f] shadow-[-16px_0_50px_rgba(6,60,41,0.15)] transition-transform duration-500 ease-out motion-reduce:transition-none min-[1200px]:hidden ${
+    open
+      ? "translate-x-0"
+      : "pointer-events-none translate-x-full"
+  }`}
+>
         {/* Panel header */}
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#edf2ed] px-5 pb-5 pt-[max(20px,env(safe-area-inset-top))]">
           <PlatformLogo />
@@ -716,23 +716,27 @@ function HeroSection() {
 <p className="mx-auto mt-6 max-w-[470px] text-[13px] font-bold leading-7 text-[#6b7b71] md:mx-0 md:text-base md:leading-8 md:text-[#e0eae2]">
   Create and share invoices via WhatsApp, send reminders, and track payments, all in one place.
 </p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3 md:justify-start">
-            <a
-              href="#pricing"
-              className={`${GREEN_BUTTON} !px-4 !text-xs md:!px-6 md:!text-sm`}
-            >
-              See Plans &amp; Pricing
-              <ArrowRight size={17} />
-            </a>
+<div className="mx-auto mt-8 flex w-full max-w-[470px] flex-row items-stretch gap-2 md:mx-0 md:gap-3">
+  <a
+    href="#pricing"
+    className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl bg-[#079333] px-2 py-3 text-[11px] font-semibold text-white transition-colors hover:bg-[#067b2b] sm:gap-2 sm:text-sm"
+  >
+    <span className="whitespace-nowrap">
+      See Plans &amp; Pricing
+    </span>
+    <ArrowRight size={16} className="shrink-0" />
+  </a>
 
-            <a
-              href="#how-it-works"
-              className={`${BUTTON} border-[#d5e4d9] bg-white px-4 text-xs text-[#064b32] hover:bg-[#eef7ef] md:border-white/45 md:bg-white/10 md:px-6 md:text-sm md:text-white md:hover:bg-white/20`}
-            >
-              See How It Works
-              <ArrowDown size={17} />
-            </a>
-          </div>
+  <a
+    href="#how-it-works"
+    className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border border-[#d5e2d8] bg-white px-2 py-3 text-[11px] font-semibold text-[#064b32] transition-colors hover:bg-[#f3f8f4] sm:gap-2 sm:text-sm"
+  >
+    <span className="whitespace-nowrap">
+      See How It Works
+    </span>
+               <ArrowDown size={16} className="shrink-0" />
+          </a>
+        </div>
         </div>
 
         <span className="absolute bottom-6 left-14 hidden text-[9px] tracking-[0.18em] text-[#b3c7bb] md:block">
