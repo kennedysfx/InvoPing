@@ -42,7 +42,7 @@ const NAVIGATION = [
   { label: "Who It’s For", href: "#who-its-for" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQs", href: "#faq" },
-  { label: "Contact", href: "#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 
@@ -622,12 +622,15 @@ useEffect(() => {
   window.history.scrollRestoration = "manual";
 
   const scrollToTop = () => {
+    if (window.location.hash) return;
     const html = document.documentElement;
     const previousBehavior = html.style.scrollBehavior;
+    
 
     html.style.scrollBehavior = "auto";
     window.scrollTo(0, 0);
     html.style.scrollBehavior = previousBehavior;
+    
   };
 
   scrollToTop();
@@ -1848,13 +1851,13 @@ function FaqSection() {
             alignLeft
           />
 
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#1b8040]"
-          >
-            Contact information
-            <ArrowRight size={17} />
-          </a>
+<Link
+  href="/contact"
+  className="inline-flex items-center gap-2 text-sm font-semibold text-[#1b8040]"
+>
+  Contact support
+  <ArrowRight size={17} />
+</Link>
         </div>
 
         <div className="grid gap-3">
@@ -2104,11 +2107,18 @@ function Footer() {
 
           <div id="contact" className="col-span-2 flex flex-col items-start gap-4 md:col-span-1">
             <h3 className="mb-1 text-sm font-semibold">Contact &amp; legal</h3>
+
+            <Link
+  href="/contact"
+  className="text-xs text-[#bad3c3] transition-colors hover:text-white"
+>
+  Contact Support
+</Link>
 <a
   href="mailto:support@invo.net"
   className="text-xs text-[#bad3c3] transition-colors hover:text-white"
 >
-  support@invo.net
+  Send a mail to support@invo.net
 </a>
             <span className="text-[10px] text-[#a7c5b4]">
               Privacy Policy 
