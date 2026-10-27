@@ -45,3 +45,5 @@ export const client = Object.assign(sqlClient, {
 export const db = dbInstance;
 
 export * from "./schema";
+
+

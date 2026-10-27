@@ -196,7 +196,7 @@ function selectTopic(topic: SupportTopic) {
       }
 
       if (file.size > MAX_FILE_SIZE) {
-        problems.push(`${file.name}: choose a file smaller than 10 MB.`);
+        problems.push(`${file.name}: choose a file smaller than 5 MB.`);
         continue;
       }
 
@@ -592,9 +592,7 @@ function selectTopic(topic: SupportTopic) {
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
           onKeyDown={(event) => {
-            const desktop = window.matchMedia(
-              "(min-width: 768px) and (pointer: fine)"
-            ).matches;
+const desktop = window.matchMedia("(pointer: fine)").matches;
 
             if (
               desktop &&

@@ -1,22 +1,13 @@
+
 "use client";
 
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  LockKeyhole,
-  Mail,
-  X,
-} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, LockKeyhole, Mail, X } from "lucide-react";
 
 import BrandLogo from "@/components/brand-logo";
 import SupportChat from "./support-chat";
-import type { SupportCustomer } from "./support-types";
+import type { SupportChatState, SupportCustomer, SupportMessage, SupportMessageInput } from "./support-types";
 
 const DRAFT_KEY = "invoping-support-draft";
 const DRAFT_LIFETIME = 30 * 60 * 1000;
@@ -28,15 +19,80 @@ type SupportPageClientProps = {
   customer: SupportCustomer | null;
 };
 
+type MessagesResponse = {
+  conversation: unknown | null;
+  messages: SupportMessage[];
+  nextCursor: string | null;
+  error?: string;
+};
+
+type SendResponse = {
+  message?: SupportMessage;
+  error?: string;
+};
+
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
 export default function SupportPageClient({
   customer,
 }: SupportPageClientProps) {
   const [draft, setDraft] = useState("");
   const [signInOpen, setSignInOpen] = useState(false);
+  const [messages, setMessages] = useState<SupportMessage[]>([]);
+  const [chatState, setChatState] = useState<SupportChatState>(
+    customer ? "LOADING" : "READY"
+  );
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const pendingSendRef = useRef<{
+    text: string;
+    clientMessageId: string;
+  } | null>(null);
 
-  // Restore the draft once, then remove the stored copy.
+  const loadMessages = useCallback(async () => {
+    if (!customer) return;
+
+    setChatState("LOADING");
+    setApiError(null);
+
+    try {
+      const response = await fetch("/api/support/messages", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await readJson<MessagesResponse>(response);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to load messages.");
+      }
+
+      setMessages(data.messages ?? []);
+      setNextCursor(data.nextCursor ?? null);
+      setChatState("READY");
+    } catch (error) {
+      console.error("[Support chat load]", error);
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load messages."
+      );
+      setChatState("ERROR");
+    }
+  }, [customer]);
+
+  useEffect(() => {
+    if (customer) {
+      void loadMessages();
+    }
+  }, [customer, loadMessages]);
+
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(DRAFT_KEY);
@@ -58,11 +114,10 @@ export default function SupportPageClient({
         setDraft(saved.text.slice(0, 5000));
       }
     } catch {
-      // Storage may be unavailable; the page still works.
+      // Storage may be unavailable.
     }
   }, []);
 
-  // Native dialog provides focus trapping and Escape handling.
   useEffect(() => {
     const dialog = dialogRef.current;
 
@@ -95,9 +150,136 @@ export default function SupportPageClient({
         })
       );
     } catch {
-      // Sign-in remains available if storage is blocked.
+      // Sign-in remains available.
     }
   }
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!customer || !nextCursor || loadingOlder) return;
+
+    setLoadingOlder(true);
+    setApiError(null);
+
+    try {
+      const response = await fetch(
+        `/api/support/messages?cursor=${encodeURIComponent(nextCursor)}`,
+        { cache: "no-store" }
+      );
+
+      const data = await readJson<MessagesResponse>(response);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to load older messages.");
+      }
+
+      setMessages((previous) => {
+        const existingIds = new Set(previous.map((message) => message.id));
+        const older = (data.messages ?? []).filter(
+          (message) => !existingIds.has(message.id)
+        );
+
+        return [...older, ...previous];
+      });
+
+      setNextCursor(data.nextCursor ?? null);
+    } catch (error) {
+      console.error("[Support older messages]", error);
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load older messages."
+      );
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [customer, nextCursor, loadingOlder]);
+
+  const sendMessage = useCallback(
+    async (input: SupportMessageInput) => {
+      if (!customer) {
+        setSignInOpen(true);
+        throw new Error("Please sign in to send a message.");
+      }
+
+      if (sending) {
+        throw new Error("A message is already being sent.");
+      }
+
+      if (input.files.length > 0) {
+        setApiError(
+          "File attachments are not available yet. Please send a text message without attachments."
+        );
+        throw new Error("Attachments are not available yet.");
+      }
+
+      const text = input.text.trim();
+
+      if (!text || text.length > 5000) {
+        throw new Error("Message must contain 1–5000 characters.");
+      }
+
+      const previousAttempt = pendingSendRef.current;
+
+      const clientMessageId =
+        previousAttempt?.text === text
+          ? previousAttempt.clientMessageId
+          : crypto.randomUUID();
+
+      pendingSendRef.current = {
+        text,
+        clientMessageId,
+      };
+
+      setSending(true);
+      setApiError(null);
+
+      try {
+        const response = await fetch("/api/support/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text,
+            clientMessageId,
+          }),
+        });
+
+        const data = await readJson<SendResponse>(response);
+
+        if (!response.ok || !data.message) {
+          throw new Error(
+            data.error || "Unable to send your message."
+          );
+        }
+
+        setMessages((previous) => {
+          if (
+            previous.some(
+              (message) => message.id === data.message!.id
+            )
+          ) {
+            return previous;
+          }
+
+          return [...previous, data.message!];
+        });
+
+        pendingSendRef.current = null;
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to send your message.";
+
+        setApiError(message);
+        throw error;
+      } finally {
+        setSending(false);
+      }
+    },
+    [customer, sending]
+  );
 
   return (
     <div className="min-h-screen bg-[#f3f8f4] font-sans text-[#103f2f] antialiased">
@@ -119,9 +301,7 @@ export default function SupportPageClient({
             className="inline-flex items-center gap-2 rounded-lg py-2 text-xs font-semibold text-[#557362] transition-colors hover:text-[#079333] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#079333]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">
-              Back to home
-            </span>
+            <span className="hidden sm:inline">Back to home</span>
             <span className="sm:hidden">Home</span>
           </Link>
         </div>
@@ -148,13 +328,29 @@ export default function SupportPageClient({
         </div>
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8">
-          <SupportChat
-            authenticated={Boolean(customer)}
-            draft={draft}
-            onDraftChange={setDraft}
-            onSignInRequired={() => setSignInOpen(true)}
-            state="UNAVAILABLE"
-          />
+          <div className="min-w-0">
+            {apiError && chatState !== "ERROR" && (
+              <div
+                role="alert"
+                className="mb-4 rounded-xl border border-[#f0d4bb] bg-[#fff8f1] px-4 py-3 text-xs text-[#9a4e18]"
+              >
+                {apiError}
+              </div>
+            )}
+
+            <SupportChat
+              authenticated={Boolean(customer)}
+              draft={draft}
+              onDraftChange={setDraft}
+              onSignInRequired={() => setSignInOpen(true)}
+              messages={messages}
+              state={chatState}
+              onRetry={loadMessages}
+              hasOlderMessages={Boolean(nextCursor)}
+              onLoadOlder={loadOlderMessages}
+              onSend={sendMessage}
+            />
+          </div>
 
           <aside
             aria-label="Other support options"
@@ -223,7 +419,7 @@ export default function SupportPageClient({
             href="/"
             className="font-medium text-[#167638] hover:underline"
           >
-            Back 
+            Back
           </Link>
         </div>
       </footer>

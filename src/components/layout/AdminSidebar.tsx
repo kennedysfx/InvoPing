@@ -5,16 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import BrandLogo from "@/components/brand-logo";
 import { usePathname } from "next/navigation";
-import {
-  Users,
-  Building2,
-  CreditCard,
-  Activity,
-  LogOut,
-  LayoutDashboard,
-  Menu,
-  X,
-} from "lucide-react";
+import { Users, Building2, CreditCard, Activity, LogOut, LayoutDashboard, Menu, X, MessageSquare } from "lucide-react";
 import { clsx } from "clsx";
 import { adminLogoutAction } from "@/actions/admin";
 
@@ -26,6 +17,10 @@ const adminNavItems = [
   { label: "Activity Logs", href: "/admin/activity", icon: Activity },
 ];
 
+const superAdminNavItems = [
+  { label: "Support Inbox", href: "/admin/support", icon: MessageSquare },
+];
+
 export function AdminSidebar({
   adminEmail,
   adminRole,
@@ -35,6 +30,10 @@ export function AdminSidebar({
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const visibleNavItems =
+  adminRole === "SUPER_ADMIN"
+    ? [...adminNavItems, ...superAdminNavItems]
+    : adminNavItems;
 
   useEffect(() => {
     setIsOpen(false);
@@ -76,7 +75,7 @@ export function AdminSidebar({
 </div>
 
         <nav className="p-3 space-y-1" aria-label="Admin navigation">
-          {adminNavItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
 

@@ -271,3 +271,124 @@ export const adminActivityLogs = pgTable("admin_activity_logs", {
 }, (table) => ({
   adminIdx: index("admin_activity_logs_admin_idx").on(table.adminId),
 }));
+
+
+export const supportConversations = pgTable(
+  "support_conversations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => users.id),
+    status: text("status", {
+      enum: ["OPEN", "PENDING", "RESOLVED"],
+    })
+      .notNull()
+      .default("OPEN"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("support_conversations_customer_id_unique").on(
+      table.customerId
+    ),
+  ]
+);
+
+
+export const supportMessages = pgTable(
+  "support_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => supportConversations.id),
+
+    // Prevent duplicate messages when a customer retries sending.
+    clientMessageId: uuid("client_message_id"),
+
+    sender: text("sender", {
+      enum: ["CUSTOMER", "SUPPORT"],
+    }).notNull(),
+    adminId: uuid("admin_id").references(() => adminUsers.id),
+    text: text("text").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true })
+      .notNull(),
+  },
+  (table) => [
+    index("support_messages_conversation_created_idx").on(
+      table.conversationId,
+      table.createdAt
+    ),
+    index("support_messages_expires_at_idx").on(
+      table.expiresAt
+    ),
+
+    // One message per client-generated ID within a conversation.
+    uniqueIndex("support_messages_client_id_unique").on(
+      table.conversationId,
+      table.clientMessageId
+    ),
+  ]
+);
+
+
+export const supportAttachments = pgTable(
+  "support_attachments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => supportMessages.id, {
+        onDelete: "cascade",
+      }),
+    kind: text("kind", {
+      enum: ["IMAGE", "DOCUMENT"],
+    }).notNull(),
+    name: text("name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    size: integer("size").notNull(),
+    storageKey: text("storage_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("support_attachments_message_id_idx").on(
+      table.messageId
+    ),
+  ]
+);
+
+
+
+export const supportRateLimits = pgTable(
+  "support_rate_limits",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    windowStartedAt: timestamp("window_started_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    messageCount: integer("message_count")
+      .notNull()
+      .default(0),
+  },
+  (table) => [
+    uniqueIndex("support_rate_limits_customer_unique").on(
+      table.customerId
+    ),
+  ]
+);
