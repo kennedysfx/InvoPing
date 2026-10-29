@@ -68,10 +68,17 @@ export default function InvoiceDetailClient({
 
   const waClickUrl = buildWhatsAppClickToChatUrl(client?.phone || "", defaultWaText);
 
-  async function handleWhatsAppShare() {
-    await markInvoiceSharedAction(invoice.id);
-    window.open(waClickUrl, "_blank");
+
+async function handleWhatsAppShare() {
+  if (!client?.phone) {
+    toast.error("This client has no WhatsApp phone number.");
+    return;
   }
+
+  // Open WhatsApp immediately from the user's click.
+  window.location.assign(waClickUrl);
+}
+
 
   async function handleRecordPayment(e: React.FormEvent) {
     e.preventDefault();
@@ -127,16 +134,52 @@ export default function InvoiceDetailClient({
     setReminderMessage(msg);
   }
 
-  async function handleSendReminderWhatsApp() {
-    setReminderLoading(true);
-    await logReminderInitiatedAction(invoice.id, selectedReminderType, reminderMessage);
-    setReminderLoading(false);
 
-    const url = buildWhatsAppClickToChatUrl(client?.phone || "", reminderMessage);
-    setShowReminderModal(false);
-    window.open(url, "_blank");
-    toast.success("Reminder initiated on WhatsApp!");
+async function handleSendReminderWhatsApp() {
+  if (reminderLoading) return;
+
+  if (!client?.phone) {
+    toast.error("This client has no WhatsApp phone number.");
+    return;
   }
+
+  if (!reminderMessage.trim()) {
+    toast.error("Please enter a reminder message.");
+    return;
+  }
+
+  const url = buildWhatsAppClickToChatUrl(
+    client.phone,
+    reminderMessage
+  );
+
+  // Open WhatsApp immediately to avoid popup blocking.
+  const whatsappWindow = window.open(url, "_blank");
+
+  if (!whatsappWindow) {
+    // Fallback for mobile browsers that block new tabs.
+    window.location.assign(url);
+    return;
+  }
+
+  setShowReminderModal(false);
+
+  // Record that the reminder was initiated, not delivered.
+  setReminderLoading(true);
+
+  try {
+    await logReminderInitiatedAction(
+      invoice.id,
+      selectedReminderType,
+      reminderMessage
+    );
+  } catch (error) {
+    console.error("Failed to record reminder initiation:", error);
+  } finally {
+    setReminderLoading(false);
+  }
+}
+
 
   return (
     <div className="space-y-6">
@@ -262,7 +305,7 @@ export default function InvoiceDetailClient({
             </p>
             {invoice.firstViewedAt && (
               <p className="text-[11px] text-cyan-400 mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Viewed by client on {new Date(invoice.firstViewedAt).toLocaleDateString()}
+                <CheckCircle2 className="w-3.5 h-3.5" /> Viewed by client on {new Date(invoice.firstViewedAt).toLocaleDateString("en-GB", { timeZone: "Africa/Lagos" })}
               </p>
             )}
           </div>
