@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, UserRound } from "lucide-react";
 import { db } from "@/db";
@@ -42,7 +42,20 @@ export default async function AdminSupportConversationPage({
     .where(eq(supportConversations.id, conversationId))
     .limit(1);
 
+
   if (!conversation) notFound();
+
+  // Mark previously unread customer messages as opened by the admin.
+  await db
+    .update(supportMessages)
+    .set({ readAt: new Date() })
+    .where(
+      and(
+        eq(supportMessages.conversationId, conversationId),
+        eq(supportMessages.sender, "CUSTOMER"),
+        isNull(supportMessages.readAt)
+      )
+    );
 
   const messages = await db
     .select({

@@ -617,6 +617,22 @@ useEffect(() => {
 function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   // Start at the top whenever the homepage loads.
+
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+const [isHeroVideoPlaying, setIsHeroVideoPlaying] = useState(true);
+
+const toggleHeroVideo = () => {
+  const video = heroVideoRef.current;
+
+  if (!video) return;
+
+  if (video.paused) {
+    void video.play();
+  } else {
+    video.pause();
+  }
+};
+
 useEffect(() => {
   const previousRestoration = window.history.scrollRestoration;
   window.history.scrollRestoration = "manual";
@@ -695,39 +711,52 @@ useEffect(() => {
     >
       <div className="relative isolate flex flex-col overflow-hidden bg-white px-5 pb-8 md:min-h-[760px] md:justify-center md:rounded-[var(--hero-radius,0px)] md:bg-[#083e2b] md:px-0 md:pb-0">
         {/* Temporary media panel. Final image/video will replace this. */}
-        <div className="relative order-2 aspect-square w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#062f23] to-[#0c5a3c] md:absolute md:inset-0 md:order-none md:aspect-auto md:h-full md:rounded-none">
-          <div className="absolute -right-20 -top-10 h-[550px] w-[550px] rounded-full border border-[#b7ecc4]/15" />
-          <div className="absolute right-0 top-10 h-[390px] w-[390px] rounded-full border border-[#b7ecc4]/15" />
+        <div className="relative order-2 aspect-square w-full overflow-hidden rounded-3xl bg-[#062f23] md:absolute md:inset-0 md:order-none md:aspect-auto md:h-full md:rounded-none">
+<video
+  ref={heroVideoRef}
+  className="absolute inset-0 h-full w-full object-cover"
+  autoPlay
+  muted
+  loop
+  playsInline
+  preload="metadata"
+  poster="/images/homepage/hero.jpg"
+  aria-hidden="true"
+  onPlay={() => setIsHeroVideoPlaying(true)}
+  onPause={() => setIsHeroVideoPlaying(false)}
+>
+    <source src="/videos/invoping-hero.mp4" type="video/mp4" />
+  </video>
 
-          <div className="absolute right-[23%] top-[13%] w-[56%] max-w-[310px] rotate-[8deg] rounded-2xl border border-[#d6e8db] bg-[#f4faf5] p-6 text-[#145034] shadow-2xl md:right-[9%] md:top-[24%] md:w-[280px]">
-            <div className="mb-8 flex items-center justify-between">
-              <FileText size={23} />
-              <span className="text-[10px] font-bold tracking-widest">
-                INVOICE
-              </span>
-              <CheckCircle2 size={21} />
-            </div>
+  <button
+  type="button"
+  onClick={toggleHeroVideo}
+  className="absolute bottom-5 left-5 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/45 text-[#111111] shadow-sm backdrop-blur-sm transition-all hover:bg-white active:scale-95 md:hidden"
+  aria-label={isHeroVideoPlaying ? "Pause hero video" : "Play hero video"}
+>
+  {isHeroVideoPlaying ? (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="h-5 w-5"
+    >
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
+  ) : (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="ml-0.5 h-5 w-5"
+    >
+      <path d="M7 4.5a1 1 0 0 1 1.52-.85l11 6.5a1 1 0 0 1 0 1.7l-11 6.5A1 1 0 0 1 7 17.5z" />
+    </svg>
+  )}
+</button>
 
-            <div className="mb-3 h-2 w-full rounded-full bg-[#dbe9df]" />
-            <div className="mb-6 h-2 w-1/2 rounded-full bg-[#dbe9df]" />
-            <div className="mb-6 border-t border-[#dbe9df]" />
-            <div className="mb-3 h-2 w-full rounded-full bg-[#dbe9df]" />
-            <div className="mb-3 h-2 w-3/4 rounded-full bg-[#dbe9df]" />
-            <div className="mb-8 h-2 w-1/2 rounded-full bg-[#dbe9df]" />
 
-            <div className="flex items-center justify-between gap-2 text-[9px] font-semibold">
-              Made for your business
-              <ArrowRight size={18} />
-            </div>
-          </div>
-
-          <div className="absolute bottom-[15%] right-[7%] flex -rotate-[4deg] items-center gap-3 rounded-2xl rounded-br-sm bg-[#d5f6df] p-4 text-[10px] text-[#175235] shadow-xl md:bottom-[20%] md:right-[5%] md:p-5 md:text-sm">
-            <MessageCircle size={22} />
-            From invoice to conversation.
-          </div>
-
-
-          <div className="absolute inset-0 hidden bg-gradient-to-r from-black/55 via-black/20 to-transparent md:block" />
         </div>
 
         <div className={`${CONTAINER} relative z-10 order-1 py-11 text-center md:order-none md:py-20 md:text-left`}>

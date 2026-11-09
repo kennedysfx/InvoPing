@@ -2,7 +2,7 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { getAdminSession } from "@/lib/admin-auth/admin-auth";
 import { db } from "@/db";
-import { supportConversations, supportMessages, users } from "@/db/schema";
+import { supportConversations, users } from "@/db/schema";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
@@ -14,12 +14,22 @@ export default async function AdminSupportPage() {
   if (!admin) redirect("/admin");
   if (admin.role !== "SUPER_ADMIN") notFound();
 
+
+
   const conversations = await db
     .select({
       id: supportConversations.id,
       customerEmail: users.email,
-      status: supportConversations.status,
       updatedAt: supportConversations.updatedAt,
+
+      unreadCount: sql<number>`(
+        SELECT COUNT(*)::int
+        FROM support_messages sm
+        WHERE sm.conversation_id = ${supportConversations.id}
+          AND sm.sender = 'CUSTOMER'
+          AND sm.read_at IS NULL
+      )`,
+
       latestMessage: sql<string | null>`(
         SELECT sm.text
         FROM support_messages sm
@@ -27,6 +37,7 @@ export default async function AdminSupportPage() {
         ORDER BY sm.created_at DESC, sm.id DESC
         LIMIT 1
       )`,
+
       latestMessageAt: sql<Date | null>`(
         SELECT sm.created_at
         FROM support_messages sm
@@ -38,6 +49,7 @@ export default async function AdminSupportPage() {
     .from(supportConversations)
     .innerJoin(users, eq(supportConversations.customerId, users.id))
     .orderBy(desc(supportConversations.updatedAt));
+
 
   return (
     <div className="space-y-6">
@@ -83,9 +95,12 @@ export default async function AdminSupportPage() {
                   </p>
                 </div>
 
-                <span className="w-fit shrink-0 rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
-                  {conversation.status}
-                </span>
+{conversation.unreadCount > 0 && (
+  <span className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 px-2 text-xs font-bold text-white">
+    {conversation.unreadCount}
+  </span>
+)}
+
               </Link>
             ))}
           </div>
