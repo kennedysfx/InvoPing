@@ -30,7 +30,7 @@ export default function SignUpPage() {
 
           <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl text-center">
             <p className="text-sm leading-6 text-slate-300">
-              We're preparing InvoPing to make invoicing, WhatsApp sharing
+              We&apos;re preparing InvoPing to make invoicing, WhatsApp sharing
               and payment tracking simpler for your business.
             </p>
 

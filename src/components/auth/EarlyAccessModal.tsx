@@ -120,17 +120,17 @@ export default function EarlyAccessModal({
                 id="early-access-title"
                 className="text-2xl font-bold tracking-tight text-gray-900"
               >
-                We're Getting Ready for You!
+                We&apos;re Getting Ready for You!
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-gray-600">
-                We're putting the finishing touches on InvoPing to make
+                We&apos;re putting the finishing touches on InvoPing to make
                 invoicing, WhatsApp sharing and payment tracking simpler
                 for your business.
               </p>
 
               <p className="mt-3 text-sm leading-6 text-gray-600">
-                Join our Early Access list and we'll let you know as soon
+                Join our Early Access list and We&apos;ll let you know as soon
                 as InvoPing is ready.
               </p>
             </div>
@@ -205,12 +205,12 @@ export default function EarlyAccessModal({
             </div>
 
             <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-              You're on the list!
+              You&apos;re on the list!
             </h2>
 
             <p className="mt-4 text-sm leading-7 text-gray-600">
-              Thank you for your interest in InvoPing. We're excited to
-              have you join us. We'll send you an email as soon as
+              Thank you for your interest in InvoPing. We&apos;re excited to
+              have you join us. We&apos;ll send you an email as soon as
               InvoPing is officially ready. We look forward to welcoming you!
             </p>
 
