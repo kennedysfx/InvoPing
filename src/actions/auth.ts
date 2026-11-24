@@ -1,66 +1,72 @@
 
 "use server";
 
-import {
-  sendCustomerSignUpOtp,
-  sendCustomerSignInOtp,
-  verifyCustomerSignUpOtp,
-  verifyCustomerSignInOtp,
-  logoutCustomer,
-} from "@/lib/auth/customer-auth";
+import { sendCustomerSignInOtp, verifyCustomerSignInOtp, logoutCustomer } from "@/lib/auth/customer-auth";
 import { redirect } from "next/navigation";
 
 export interface AuthActionResult {
   success: boolean;
   redirectUrl?: string;
   error?: string;
+  code?: "EARLY_ACCESS_REQUIRED";
 }
 
-// Sign Up Flow
+function getDeveloperEmail(): string | null {
+  const email = process.env.INVOPING_DEVELOPER_EMAIL?.trim().toLowerCase();
+  return email || null;
+}
+
+function isDeveloperEmail(email: string): boolean {
+  const developerEmail = getDeveloperEmail();
+  return Boolean(developerEmail && email.trim().toLowerCase() === developerEmail);
+}
+
+function getDeveloperConfigError(): string {
+  return "Customer login is temporarily unavailable. Please contact the administrator.";
+}
+
+// Sign Up Flow — disabled during Early Access
 export async function requestSignUpOtpAction(
-  formData: FormData
-): Promise<{ success: boolean; error?: string }> {
-  const email = formData.get("email") as string;
-
-  if (!email) {
-    return { success: false, error: "Email is required." };
-  }
-
-  return sendCustomerSignUpOtp(email);
-}
-
-export async function verifySignUpOtpAction(
-  email: string,
-  code: string
+  _formData: FormData
 ): Promise<AuthActionResult> {
-  if (!email || !code) {
-    return {
-      success: false,
-      error: "Email and verification code are required.",
-    };
-  }
-
-  const result = await verifyCustomerSignUpOtp(email, code);
-
-  if (result.success && result.session) {
-    // New customers always proceed to onboarding
-    return { success: true, redirectUrl: "/onboarding" };
-  }
-
   return {
     success: false,
-    error: result.error || "Verification failed.",
+    code: "EARLY_ACCESS_REQUIRED",
   };
 }
 
-// Sign In Flow
+export async function verifySignUpOtpAction(
+  _email: string,
+  _code: string
+): Promise<AuthActionResult> {
+  return {
+    success: false,
+    code: "EARLY_ACCESS_REQUIRED",
+  };
+}
+
+// Sign In Flow — only the designated developer account can sign in
 export async function requestSignInOtpAction(
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
-  const email = formData.get("email") as string;
+): Promise<AuthActionResult> {
+  const emailValue = formData.get("email");
 
-  if (!email) {
+  if (typeof emailValue !== "string" || !emailValue.trim()) {
     return { success: false, error: "Email is required." };
+  }
+
+  const email = emailValue.trim().toLowerCase();
+
+  if (!getDeveloperEmail()) {
+    console.error("INVOPING_DEVELOPER_EMAIL is not configured.");
+    return { success: false, error: getDeveloperConfigError() };
+  }
+
+  if (!isDeveloperEmail(email)) {
+    return {
+      success: false,
+      code: "EARLY_ACCESS_REQUIRED",
+    };
   }
 
   return sendCustomerSignInOtp(email);
@@ -70,14 +76,33 @@ export async function verifySignInOtpAction(
   email: string,
   code: string
 ): Promise<AuthActionResult> {
-  if (!email || !code) {
+  if (
+  typeof email !== "string" ||
+  typeof code !== "string" ||
+  !email.trim() ||
+  !code.trim()
+) {
     return {
       success: false,
       error: "Email and verification code are required.",
     };
   }
 
-  const result = await verifyCustomerSignInOtp(email, code);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!getDeveloperEmail()) {
+    console.error("INVOPING_DEVELOPER_EMAIL is not configured.");
+    return { success: false, error: getDeveloperConfigError() };
+  }
+
+  if (!isDeveloperEmail(normalizedEmail)) {
+    return {
+      success: false,
+      code: "EARLY_ACCESS_REQUIRED",
+    };
+  }
+
+  const result = await verifyCustomerSignInOtp(normalizedEmail, code);
 
   if (result.success && result.session) {
     if (!result.session.onboardingCompleted || !result.session.businessId) {

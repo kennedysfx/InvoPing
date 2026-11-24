@@ -392,3 +392,38 @@ export const supportRateLimits = pgTable(
     ),
   ]
 );
+
+
+// 16. Early Access Signups
+export const earlyAccessSignups = pgTable(
+  "early_access_signups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    emailUniqueIdx: uniqueIndex("early_access_signups_email_unique_idx").on(
+      table.email
+    ),
+  })
+);
+
+
+// 17. Early Access Registration Rate Limits
+export const earlyAccessRateLimits = pgTable(
+  "early_access_rate_limits",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ipHash: text("ip_hash").notNull(),
+    windowStartedAt: timestamp("window_started_at").defaultNow().notNull(),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    blockedUntil: timestamp("blocked_until"),
+  },
+  (table) => ({
+    ipHashUniqueIdx: uniqueIndex("early_access_rate_limits_ip_hash_unique").on(
+      table.ipHash
+    ),
+  })
+);

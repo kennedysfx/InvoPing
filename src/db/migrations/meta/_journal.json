@@ -64,6 +64,20 @@
       "when": 1793088571115,
       "tag": "0008_support_atomic_send",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795420794108,
+      "tag": "0009_sparkling_harrier",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795421714927,
+      "tag": "0010_true_alex_wilder",
+      "breakpoints": true
     }
   ]
 }

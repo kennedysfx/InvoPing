@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import BrandLogo from "@/components/brand-logo";
 import { usePathname } from "next/navigation";
-import { Users, Building2, CreditCard, Activity, LogOut, LayoutDashboard, Menu, X, MessageSquare } from "lucide-react";
+import { Users, Building2, CreditCard, Activity, LogOut, LayoutDashboard, Menu, X, MessageSquare, UserPlus } from "lucide-react";
 import { clsx } from "clsx";
 import { adminLogoutAction } from "@/actions/admin";
 
@@ -15,10 +15,12 @@ const adminNavItems = [
   { label: "Businesses", href: "/admin/businesses", icon: Building2 },
   { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
   { label: "Activity Logs", href: "/admin/activity", icon: Activity },
+  
 ];
 
 const superAdminNavItems = [
   { label: "Support Inbox", href: "/admin/support", icon: MessageSquare },
+  { label: "Early Access", href: "/admin/early-access", icon: UserPlus },
 ];
 
 export function AdminSidebar({
