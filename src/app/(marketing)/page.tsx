@@ -465,7 +465,7 @@ useEffect(() => {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-[#e6eee8] bg-white/95">
-        <div className="mx-auto flex min-h-[72px] w-[calc(100%-40px)] max-w-[1440px] items-center justify-between gap-6 md:min-h-[84px] md:w-[calc(100%-64px)]">
+        <div className="mx-auto flex min-h-[72px] w-[calc(100%-40px)] max-w-[1440px] items-center justify-between gap-6 md:min-h-[64px] md:w-[calc(100%-64px)]">
           <PlatformLogo />
 
           {/* Desktop navigation */}
@@ -778,21 +778,19 @@ useEffect(() => {
 </p>
 <div className="mx-auto mt-8 flex w-full max-w-[470px] flex-row items-stretch gap-2 md:mx-0 md:gap-3">
   <a
-    href="#pricing"
+    href="/sign-up"
     className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl bg-[#079333] px-2 py-3 text-[11px] font-semibold text-white transition-colors hover:bg-[#067b2b] sm:gap-2 sm:text-sm"
   >
-    <span className="whitespace-nowrap">
-      See Plans &amp; Pricing
-    </span>
-    <ArrowRight size={16} className="shrink-0" />
+            Get Started Free
+            <ArrowRight size={18} className="shrink-0" />
   </a>
 
   <a
-    href="#how-it-works"
+    href="#pricing"
     className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border border-[#d5e2d8] bg-white px-2 py-3 text-[11px] font-semibold text-[#064b32] transition-colors hover:bg-[#f3f8f4] sm:gap-2 sm:text-sm"
   >
     <span className="whitespace-nowrap">
-      See How It Works
+      See Plans &amp; Pricing
     </span>
                <ArrowDown size={16} className="shrink-0" />
           </a>
