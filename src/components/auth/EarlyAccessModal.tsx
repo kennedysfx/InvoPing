@@ -130,8 +130,7 @@ export default function EarlyAccessModal({
               </p>
 
               <p className="mt-3 text-sm leading-6 text-gray-600">
-                Join our Early Access list and We&apos;ll let you know as soon
-                as InvoPing is ready.
+                Join our waitlist and get a free 30-day PRO account when we launch.
               </p>
             </div>
 
